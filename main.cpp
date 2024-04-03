@@ -1,11 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
 #include <windows.h>
-//#include "serial/serial.h"
+#include <ws2tcpip.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "serial/serial.h"
 
 #define DEFAULT_BUFLEN 512
+//#define DEFAULT_PORT "27015"
 #define DEFAULT_PORT "8000" // Change this to the port you want to listen on
 
 int main(int argc, char** argv) {
@@ -76,24 +77,24 @@ int main(int argc, char** argv) {
     }
 
     // Send an initial buffer
-    iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
+    /*iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
     if (iResult == SOCKET_ERROR) {
         printf("send failed with error: %d\n", WSAGetLastError());
         closesocket(ConnectSocket);
         WSACleanup();
         return 1;
-    }
+    }*/
 
-    printf("Bytes Sent: %ld\n", iResult);
+    //printf("Bytes Sent: %ld\n", iResult);
 
     // shutdown the connection since no more data will be sent
-    iResult = shutdown(ConnectSocket, SD_SEND);
+    /*iResult = shutdown(ConnectSocket, SD_SEND);
     if (iResult == SOCKET_ERROR) {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
         closesocket(ConnectSocket);
         WSACleanup();
         return 1;
-    }
+    }*/
 
     // Receive until the peer closes the connection
     do {
@@ -108,6 +109,7 @@ int main(int argc, char** argv) {
 
     } while (iResult > 0);
 
+    printf("recvbuf: %s", recvbuf);
     // cleanup
     closesocket(ConnectSocket);
     WSACleanup();
