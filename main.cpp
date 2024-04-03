@@ -3,11 +3,14 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <string>
 #include "serial/serial.h"
+using namespace std;
 
 #define DEFAULT_BUFLEN 512
-//#define DEFAULT_PORT "27015"
 #define DEFAULT_PORT "8000" // Change this to the port you want to listen on
+//#define DEFAULT_SERIAL_PORT ""
 
 int main(int argc, char** argv) {
     WSADATA wsaData;
@@ -76,40 +79,38 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Send an initial buffer
-    /*iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-    if (iResult == SOCKET_ERROR) {
-        printf("send failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return 1;
-    }*/
-
-    //printf("Bytes Sent: %ld\n", iResult);
-
-    // shutdown the connection since no more data will be sent
-    /*iResult = shutdown(ConnectSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR) {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return 1;
-    }*/
+    //Create serial port on default serial port
 
     // Receive until the peer closes the connection
+    bool isNum = 0;
+    uint8_t num = 
     do {
 
         iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-        if (iResult > 0)
-            printf("Bytes received: %d\n", iResult);
-        else if (iResult == 0)
+        for (int i = 0; i < iResult; i++) {
+            if (recvbuf[i] >= 48 && recvbuf[i] <= 57) {
+                if (isNum = 0) {
+
+                }
+                num = 1;
+            }
+            else{
+                printf("%c", recvbuf[i]);
+            }
+        }
+        if (iResult > 0) {
+            //printf("Bytes received: %d\n", iResult);
+        }
+        else if (iResult == 0) {
             printf("Connection closed\n");
-        else
+        }
+        else {
             printf("recv failed with error: %d\n", WSAGetLastError());
+        }
 
     } while (iResult > 0);
 
-    printf("recvbuf: %s", recvbuf);
+    
     // cleanup
     closesocket(ConnectSocket);
     WSACleanup();
