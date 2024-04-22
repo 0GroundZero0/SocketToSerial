@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
 
 
     // Validate the parameters
-    if (argc != 2) {
-        printf("usage: %s server-name\n", argv[0]);
+    if (argc != 3) {
+        printf("usage: %s server-name serial-name\n", argv[0]);
         return 1;
     }
 
@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
+    
     iResult = getaddrinfo(argv[1], DEFAULT_NET_PORT, &hints, &result);
     if (iResult != 0) {
         printf("getaddrinfo failed with error: %d\n", iResult);
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
     //Open serial port
     
     HANDLE h_Serial;
-    h_Serial = CreateFileA("COM5", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+    h_Serial = CreateFileA(argv[2], GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, 0);
     if (h_Serial == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_NOT_FOUND) {
@@ -134,29 +135,39 @@ int main(int argc, char** argv) {
     DWORD numRead = 0;
     // Receive until the peer closes the connection
     do {
-        iResult = recv(ConnectSocket, writeBuff, DEFAULT_BUFLEN, 0);
-        /*for (int i = 0; i < iResult; i++) {
-            printf("%c", writeBuff[i]);
-        }
-        printf("\n");*/
-
+        char* searchBuff;
+        do {
+            iResult = recv(ConnectSocket, writeBuff, DEFAULT_BUFLEN, MSG_PEEK);
+            searchBuff = strstr(writeBuff, "wheel = ");
+        } while (searchBuff == NULL);
         
-        if (!WriteFile(h_Serial, writeBuff, iResult, &numWritten, NULL)) {
-            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-                GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                lastErr, 1020, NULL);
-            printf("%s", lastErr);
+        iResult = recv(ConnectSocket, writeBuff, DEFAULT_BUFLEN, 0);
+        searchBuff = strstr(writeBuff, "wheel = ");
+        char tmpBuff[3];
+        
+        if (searchBuff != NULL) {
+            //motor = *(searchBuff + 8);
+            for (int i = 8; i < 11; i++) {
+                tmpBuff[i - 8] = searchBuff[i];
+            }
+            uint8_t motor = atoi(tmpBuff);
+            printf("%i\n", motor);
+            if (!WriteFile(h_Serial, searchBuff, 11, &numWritten, NULL)) {
+                FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+                    GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    lastErr, 1020, NULL);
+                printf("%s", lastErr);
+            }
+            if (!ReadFile(h_Serial, readBuff, numWritten, &numRead, NULL)) {
+                FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+                    GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    lastErr, 1020, NULL);
+                printf("%s", lastErr);
+            }
         }
-        if (!ReadFile(h_Serial, readBuff, numWritten, &numRead, NULL)) {
-            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-                GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                lastErr, 1020, NULL);
-            printf("%s", lastErr);
-        }
-
-        for (int i = 0; i < numRead; i++) {
-            printf("%c", readBuff[i]);
-        }
+        //if (numRead != '0') {
+            
+        //}
 
         printf("\n");
         if (iResult > 0) {
