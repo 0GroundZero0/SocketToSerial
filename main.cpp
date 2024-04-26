@@ -149,22 +149,24 @@ int main(int argc, char** argv) {
             //motor = *(searchBuff + 8);
             for (int i = 8; i < 11; i++) {
                 tmpBuff[i - 8] = searchBuff[i];
+                printf("%c", tmpBuff[i - 8]);
             }
             uint8_t motor = atoi(tmpBuff);
-            printf("%i\n", motor);
-            if (!WriteFile(h_Serial, searchBuff, 11, &numWritten, NULL)) {
+            printf("motor %i\n", motor);
+            if (!WriteFile(h_Serial, tmpBuff, 3, &numWritten, NULL)) {
                 FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
                     GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                     lastErr, 1020, NULL);
                 printf("%s", lastErr);
             }
-            if (!ReadFile(h_Serial, readBuff, numWritten, &numRead, NULL)) {
+            /*if (!ReadFile(h_Serial, readBuff, numWritten, &numRead, NULL)) {
                 FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
                     GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                     lastErr, 1020, NULL);
                 printf("%s", lastErr);
-            }
+            }*/
         }
+        //uint8_t rcvMot = atoi(readBuff);
         //if (numRead != '0') {
             
         //}
